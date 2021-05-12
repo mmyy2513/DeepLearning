@@ -3,7 +3,8 @@ import os
 import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import Dataset, DataLoader
-from model import ModelClass
+from model import Net
+import numpy as np
 
 
 class ImageDataset(Dataset):
@@ -23,7 +24,10 @@ class ImageDataset(Dataset):
         img_name = self.fmtstr.format(idx)
         img_path = os.path.join(self.root_dir, img_name)
         img = plt.imread(img_path)
+        
+        img = img.transpose(2,1,0)
         data = torch.from_numpy(img)
+
         return data
 
 
@@ -53,7 +57,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # instantiate model
-    model = ModelClass()
+    model = Net()
     model.load_state_dict(torch.load(args.load_model))
 
     # load dataset in test image folder
