@@ -120,22 +120,23 @@ train_cost, train_acc, val_cost, val_acc = fit(epochs, model, criterion, optimiz
 
 # save graph
 plt.figure()
-plt.subplot(121)
-plt.plot(np.arange(len(train_cost)), train_cost, color = 'r', label = "train")
-plt.plot(np.arange(len(val_cost)), val_cost, color = 'b', label = "val")
-plt.legend(); plt.title(f"Cost Graph : {description}"); plt.xlabel("epoch"); plt.ylabel("cost")
+plt.suptitle(description)
+plt.subplot(211)
+plt.plot(np.arange(len(epochs)), train_cost, color = 'r', label = "train")
+plt.plot(np.arange(len(epochs)), val_cost, color = 'b', label = "val")
+plt.legend(); plt.title(f"Cost Graph"); plt.xlabel("epoch"); plt.ylabel("cost")
 
-plt.subplot(122)
-plt.plot(np.arange(len(train_acc)), train_acc, color = 'r', label = "train")
-plt.plot(np.arange(len(val_acc)), val_acc, color = 'b', label = "val")
-plt.legend(); plt.title(f"Acc Graph : {description}"); plt.xlabel("epoch"); plt.ylabel("acc")
+plt.subplot(222)
+plt.plot(np.arange(len(epochs)), train_acc, color = 'r', label = "train")
+plt.plot(np.arange(len(epochs)), val_acc, color = 'b', label = "val")
+plt.legend(); plt.title(f"Acc Graph"); plt.xlabel("epoch"); plt.ylabel("acc")
 plt.savefig(f'Cost, Acc Graph : {description}.png')
 
 
 # test and save log
 model.eval()
 test_acc = []
-with torch.no_grad:
+with torch.no_grad():
 	for data, target in test_loader:
 		data = data.to(device)
 		target = target.to(device)
@@ -144,8 +145,10 @@ with torch.no_grad:
 
 		acc = get_acc(pred, target)
 		test_acc.append(acc)
-test_accuracy = sum(acc_list) / len(acc_list)
-print(f"Test Accuracy ({ckpt}) : {test_accuracy:.4f}")
+test_accuracy = sum(test_acc) / len(test_acc)
+print(f"Test Accuracy : {test_accuracy:.4f}\t\t(checkpoint = {description})")
 
 with open("train_log.txt","a") as f:
-	f.write(f"Model : {description}     test Accuracy : {test_accuracy:.4f}\n")
+	f.write(f"\nModel : {description}     test Accuracy : {test_accuracy:.4f}\n")
+
+print("Done!!")

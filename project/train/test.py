@@ -1,16 +1,9 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
-import torchvision.datasets as datasets
 import torchvision.transforms as transforms
-import cv2
-import albumentations as A
-import numpy as np
-from PIL import Image
-import matplotlib.pyplot as plt
 from torchvision.datasets import MNIST
+import argparse
 
 from MyClass import Net
 # from utils import get_acc, loss_batch, fit
@@ -28,7 +21,7 @@ def get_acc(pred, label):
 
 def load_model(ckpt):
 	model = Net()
-	model.load_state_dict(torch.load("ckpt"))
+	model.load_state_dict(torch.load(ckpt))
 	return model
 
 transform = transforms.Compose([
@@ -54,4 +47,4 @@ with torch.no_grad():
 		acc_list.append(acc)
 
 test_accuracy = sum(acc_list) / len(acc_list)
-print(f"Test Accuracy ({ckpt}) : {test_accuracy:.4f}")
+print(f"\nTest Accuracy : {test_accuracy:.4f}\t\t(checkpoint = {args.ckpt})")
