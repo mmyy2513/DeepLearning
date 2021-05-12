@@ -9,6 +9,7 @@ import cv2
 import albumentations as A
 import numpy as np
 from PIL import Image
+from MyClass import Net
 
 # acc function
 def get_acc(pred, label):
@@ -31,8 +32,16 @@ def loss_batch(model, criterion, data, target, optimizer = None):
 
 	return loss.item(), acc
 
+
+# save ckpt
+def save_checkpoint(desc, state, num):
+	filename = './ckpt/{}-{}.pth.tar'.format(desc,num)
+	torch.save(state, filename)
+	print("=> Saving checkpoint : {}".format(filename))
+
+
 # fit
-def fit(epochs, model, criterion, optimzier, train_loader, val_loader):
+def fit(epochs, model, criterion, optimzier, train_loader, val_loader, description):
 	train_cost = []
 	train_acc = []
 	val_cost = []
@@ -64,6 +73,10 @@ def fit(epochs, model, criterion, optimzier, train_loader, val_loader):
 		accuracy_v = sum(val_accuracy) / len(val_accuracy); val_acc.append(accuracy_v)
 		
 		if epoch % 10 == 0:
+			checkpoint = {'state_dict' : model.state_dict()}
+			save_checkpoint(description,checkpoint, epoch)
 			print(f"[Epoch:{epoch}/{epochs}]\n[train] cost : {cost_t:<10.4f} accuracy : {accuracy_t:<10.4f}\n [dev]  cost : {cost_v:<10.4f} accuracy : {accuracy_v:<10.4f}\n")
 
 	return train_cost, train_acc, val_cost, val_acc
+
+
