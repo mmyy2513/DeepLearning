@@ -12,14 +12,14 @@ from PIL import Image
 
 
 VGG_types = {
-	'VGG11' : [64, 128, 'M', 256, 512, 'M'],
+	'2M' : [64, 128, 'M', 256, 512, 'M'],
 }
 
 class Net(nn.Module):
-	def __init__(self, in_channels=1, num_classes=10, init_weights=True, model='VGG11'):
+	def __init__(self,  model, num_classes=10, init_weights=True, RGB = True):
 		super(Net, self).__init__()
-
-		self.in_channels = in_channels
+		self.RGB = RGB
+		self.in_channels = 3 if RGB == True else 1
 		self.num_classes = num_classes
 
 		self.conv_layers = self.create_conv_layers(VGG_types[model])
@@ -34,11 +34,11 @@ class Net(nn.Module):
 		if init_weights == True:
 			self._initialize_weights()
 
-
 	def forward(self, x):
-#		print(x.shape)
-		x = transforms.Grayscale(num_output_channels = 1)(x)
-		#print(x.shape)
+		# print(x.shape)
+		if self.RGB == False:
+			x = transforms.Grayscale(num_output_channels = 1)(x)
+		# print(x.shape)
 		x = self.conv_layers(x)
 		x = x.reshape(x.shape[0], -1)
 		x = self.fc_layers(x)

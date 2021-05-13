@@ -11,12 +11,43 @@ import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 from torchvision.datasets import MNIST
-
+from myDataset import MyDataset
 from MyClass import Net
+import argparse
 # from utils import get_acc, loss_batch, fit
 
+parser = argparse.ArgumentParser(description='Load Weight and Evaluate')
+parser.add_argument('--ckpt', help="Path of Checkpoint")
+parser.add_argument('--model', help="model name")
+parser.add_argument('--RGB', help="rgb")
+
+args = parser.parse_args()
+
+RGB = args.RGB
+model = args.model
+
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-description = "0512VGG-reform"
+date = "0513"
+rgb = "3channel" if RGB == True else "1channel"
+description = date + "-" + model + "-" + rgb
+
+# hyperparameters
+batch_size = 1024
+lr = 1e-2
+epochs = 50
+
+transform = transforms.Compose([
+	transforms.Grayscale(num_output_channels = 3),
+	transforms.ToTensor(),
+	transforms.Normalize((0.1306, 0.1306, 0.1306), (0.3081, 0.3081, 0.3081)),
+	transforms.RandomApply([
+			transforms.ColorJitter(),
+			transforms.RandomAffine(10),
+			transforms.RandomPerspective(),
+			transforms.GaussianBlur(3),
+			transforms.RandomErasing()
+			])
+	])
 
 
 # acc function
@@ -54,7 +85,7 @@ def fit(epochs, model, criterion, optimzier, train_loader, val_loader, descripti
 	train_acc = []
 	val_cost = []
 	val_acc = []
-
+	print("=============Start Training=============")
 	for epoch in range(epochs+1):
 		# train
 		model.train()
@@ -87,28 +118,16 @@ def fit(epochs, model, criterion, optimzier, train_loader, val_loader, descripti
 
 	return train_cost, train_acc, val_cost, val_acc
 
-# hyperparameters
-batch_size = 1024
-lr = 1e-2
-epochs = 50
-
-# make data have 3 channels
-transform = transforms.Compose([
-	transforms.Grayscale(num_output_channels = 3),
-	transforms.ToTensor(),
-	])
-
 train_data = MNIST(root = "./", train = True, transform = transform, download = True)
-test_data = MNIST(root = "./", train = False, transform = transform, download = True)
 
 train_data, val_data = torch.utils.data.random_split(train_data, [50000, 10000])
 
 train_loader = DataLoader(train_data, batch_size=batch_size, shuffle = True)
 val_loader = DataLoader(val_data, batch_size = batch_size)
-test_loader = DataLoader(test_data, batch_size = batch_size)
 
 # define model
-model = Net().to(device)
+print(model, RGB)
+model = Net(model = model, RGB = eval(RGB)).to(device)
 
 # optimizer
 optimizer = optim.Adam(model.parameters())
@@ -122,33 +141,40 @@ train_cost, train_acc, val_cost, val_acc = fit(epochs, model, criterion, optimiz
 plt.figure()
 plt.suptitle(description)
 plt.subplot(211)
-plt.plot(np.arange(len(epochs)), train_cost, color = 'r', label = "train")
-plt.plot(np.arange(len(epochs)), val_cost, color = 'b', label = "val")
+plt.plot(np.arange(epochs), train_cost, color = 'r', label = "train")
+plt.plot(np.arange(epochs), val_cost, color = 'b', label = "val")
 plt.legend(); plt.title(f"Cost Graph"); plt.xlabel("epoch"); plt.ylabel("cost")
 
 plt.subplot(222)
-plt.plot(np.arange(len(epochs)), train_acc, color = 'r', label = "train")
-plt.plot(np.arange(len(epochs)), val_acc, color = 'b', label = "val")
+plt.plot(np.arange(epochs), train_acc, color = 'r', label = "train")
+plt.plot(np.arange(epochs), val_acc, color = 'b', label = "val")
 plt.legend(); plt.title(f"Acc Graph"); plt.xlabel("epoch"); plt.ylabel("acc")
 plt.savefig(f'Cost, Acc Graph : {description}.png')
 
+# test
+transform = transforms.Compose([
+	transforms.ToTensor(),
+	transforms.Resize((28, 28)),
+	])
 
-# test and save log
+dataset = MyDataset(csv_file = 'testing.csv', root = 'targets', transform = transform)
+test_loader = DataLoader(dataset, batch_size = batch_size)
+
 model.eval()
-test_acc = []
+
+acc_list = []
 with torch.no_grad():
 	for data, target in test_loader:
+		
 		data = data.to(device)
 		target = target.to(device)
-
+		
 		pred = model(data)
 
 		acc = get_acc(pred, target)
-		test_acc.append(acc)
-test_accuracy = sum(test_acc) / len(test_acc)
-print(f"Test Accuracy : {test_accuracy:.4f}\t\t(checkpoint = {description})")
+		acc_list.append(acc)
+test_accuracy = sum(acc_list) / len(acc_list)
 
 with open("train_log.txt","a") as f:
 	f.write(f"\nModel : {description}     test Accuracy : {test_accuracy:.4f}\n")
-
-print("Done!!")
+print(f"\nModel : {description}     test Accuracy : {test_accuracy:.4f}\n")
