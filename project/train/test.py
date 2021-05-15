@@ -1,10 +1,12 @@
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, ConcatDataset, random_split
 import torchvision.transforms as transforms
 import argparse
 from myDataset import MyDataset
 from MyClass import Net
+from torchvision.datasets import MNIST
+
 
 parser = argparse.ArgumentParser(description='Load Weight and Evaluate')
 parser.add_argument('--ckpt', help="Path of Checkpoint")
@@ -14,6 +16,7 @@ parser.add_argument('--RGB', help="rgb")
 args = parser.parse_args()
 
 RGB = False if args.RGB == "False" else True
+#print(RGB)
 model = args.model
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 batch_size = 128
@@ -33,11 +36,22 @@ transform = transforms.Compose([
 	transforms.Resize((28, 28)),
 	])
 
-dataset = MyDataset(csv_file = 'testing.csv', root = 'targets', transform = transform)
-test_loader = DataLoader(dataset, batch_size = batch_size)
+transform1 = transforms.Compose([
+	transforms.Grayscale(num_output_channels = 3),
+	transforms.ToTensor(),
+	
+	])
+
+dataset2 = MNIST(root = './', train=False, download=True, transform = transform1)
+dataset2, _ = random_split(dataset2, [200, len(dataset2)-200])
+dataset1 = MyDataset(csv_file = 'testing.csv', root = 'targets', transform = transform)
+dataset = ConcatDataset([dataset1, dataset2])
 
 
-model = load_model(args.ckpt, args.model, RGB)
+test_loader = DataLoader(dataset, batch_size = batch_size, shuffle= True)
+
+
+model = load_model(args.ckpt, args.model, RGB = RGB)
 model = model.to(device)
 model.eval()
 

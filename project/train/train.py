@@ -12,6 +12,7 @@ from myDataset import MyDataset
 from MyClass import Net
 import argparse
 import time
+from torchvision.datasets import MNIST
 
 random_seed = 42
 np.random.seed(random_seed)
@@ -39,12 +40,6 @@ description = date + "-" + model + "-" + rgb
 batch_size = 1024
 lr = 1e-2
 epochs = int(args.epoch)
-
-transform = transforms.Compose([
-	transforms.ToTensor(),
-	transforms.Normalize([0.7552, 0.7443, 0.7359], [0.3141, 0.3169, 0.3237]),
-	])
-
 
 # acc function
 def get_acc(pred, label):
@@ -114,17 +109,31 @@ def fit(epochs, model, criterion, optimzier, train_loader, val_loader, descripti
 
 	return train_cost, train_acc, val_cost, val_acc
 
-trainset = datasets.ImageFolder(root = "dataset", transform = transform)
-#print(trainset)
-train_data, val_data = torch.utils.data.random_split(trainset, [20000, 4805])
+transform_custom = transforms.Compose([
+	transforms.ToTensor(),
+	transforms.Normalize([0.7552, 0.7443, 0.7359], [0.3141, 0.3169, 0.3237]),
+	])
+transform_mnist = transforms.Compose([
+	transforms.Grayscale(num_output_channels=3),
+    transforms.ToTensor(),
+    transforms.Normalize([0.1307, 0.1307, 0.1307], [0.3081, 0.3081, 0.3081]),
+	])
 
+trainset_custom = datasets.ImageFolder(root = "dataset", transform = transform_custom)
+trainset_mnist = MNIST(root = './', train=True, download=True, transform = transform_mnist)
+trainset_mnist, _ = torch.utils.data.random_split(trainset_mnist, [20000, len(trainset_mnist) - 20000])
+
+trainset = torch.utils.data.ConcatDataset([trainset_mnist, trainset_custom])
+
+len_trainset = len(trainset)
+
+train_data, val_data = torch.utils.data.random_split(trainset, [36000,8805])
 
 train_loader = DataLoader(train_data, batch_size=batch_size, shuffle = True)
 val_loader = DataLoader(val_data, batch_size = batch_size)
 
 
 # define model
-# print(model, RGB)
 model = Net(model = model, RGB = eval(RGB)).to(device)
 
 # optimizer
@@ -150,13 +159,24 @@ plt.legend(); plt.title(f"Acc Graph"); plt.xlabel("epoch"); plt.ylabel("acc")
 plt.savefig(f'Cost, Acc Graph : {description}.png')
 
 # test
-transform = transforms.Compose([
+transform_custom = transforms.Compose([
 	transforms.ToTensor(),
 	transforms.Resize((28, 28)),
 	])
+transform_mnist = transforms.Compose([
+	transforms.Grayscale(num_output_channels=3),
+    transforms.ToTensor(),
+    transforms.Resize((28, 28)),
+	])
 
-dataset = MyDataset(csv_file = 'testing.csv', root = 'targets', transform = transform)
-test_loader = DataLoader(dataset, batch_size = batch_size)
+
+testset_custom = datasets.ImageFolder(root = "targets", transform = transform_custom)
+testset_mnist = MNIST(root = './', train=False, download=True, transform = transform_mnist)
+testset_mnist, _ = torch.utils.data.random_split(trainset_mnist, [200, len(trainset_mnist) - 200])
+
+testset = torch.utils.data.ConcatDataset([testset_mnist, testset_custom])
+
+test_loader = DataLoader(testset, batch_size=batch_size)
 
 model.eval()
 

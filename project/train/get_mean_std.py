@@ -6,10 +6,15 @@ from torch.utils.data import DataLoader, TensorDataset
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import torchvision
+from torchvision.datasets import MNIST
 
-transform = transforms.ToTensor()
+transform = transforms.Compose([
+    transforms.Grayscale(num_output_channels=3),
+    transforms.ToTensor()
+])
 
-trainset = datasets.ImageFolder(root = "dataset", transform = transform)
+# trainset = datasets.ImageFolder(root = "dataset", transform = transform)
+trainset = MNIST(root = './', train=True, download=True, transform = transform)
 train_loader = DataLoader(trainset)
 def get_mean_std(loader):
     # VAR[X] = E[X**2] - E[X]**2

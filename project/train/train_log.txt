@@ -16,3 +16,13 @@ Model : 515-SIMPLE-3channel     test Accuracy : 0.6794(Epoch : 100)
 Model : 515-2M-3channel     test Accuracy : 0.7751(Epoch : 100)
 
 Model : 515-2M-1channel     test Accuracy : 0.8373(Epoch : 100)
+
+Model : 515-3M-1channel     test Accuracy : 0.8852(Epoch : 100)  # 60.pt best(0.9015)
+
+Model : 515-3M-3channel     test Accuracy : 0.8660(Epoch : 100)
+
+Model : 515-2M-1-1channel     test Accuracy : 0.8230(Epoch : 100)
+
+Model : 515-2M-1-3channel     test Accuracy : 0.8134(Epoch : 100)
+
+Model : 515-SIMPLE-1channel     test Accuracy : 0.6822(Epoch : 1)

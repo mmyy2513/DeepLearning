@@ -14,6 +14,7 @@ from PIL import Image
 VGG_types = {
 	'SIMPLE' : [32, 16, 0],
 	'2M' : [64, 128, 'M', 256, 512, 'M', 2],
+	'2M-1' : [64, 128, 'M', 256, 256, 512, 'M', 2],
 	'3M' : [64, 128, 'M', 256, 512, 'M', 512, 256, 256, 'M', 3],
 }
 
@@ -37,6 +38,7 @@ class Net(nn.Module):
 			self._initialize_weights()
 
 	def forward(self, x):
+		
 		# print(x.shape)
 		if self.RGB == False:
 			x = transforms.Grayscale(num_output_channels = 1)(x)
