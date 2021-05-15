@@ -12,21 +12,22 @@ from PIL import Image
 
 
 VGG_types = {
-	'2M' : [64, 128, 'M', 256, 512, 'M'],
+	'SIMPLE' : [32, 16, 0],
+	'2M' : [64, 128, 'M', 256, 512, 'M', 2],
 }
 
 class Net(nn.Module):
 	def __init__(self,  model, num_classes=10, init_weights=True, RGB = True):
 		super(Net, self).__init__()
+		n_pool = VGG_types[model].pop()
+		last = VGG_types[model][-1] if type(VGG_types[model][-1]) == int else VGG_types[model][-2]
 		self.RGB = RGB
 		self.in_channels = 3 if RGB == True else 1
 		self.num_classes = num_classes
-
 		self.conv_layers = self.create_conv_layers(VGG_types[model])
 		
-		self.fc_layers = nn.Sequential(
-			# 28 / 2 ** 2
-			nn.Linear(512 * 7 * 7, 1000),
+		self.fc_layers = nn.Sequential(	
+			nn.Linear(last * (28//(2**n_pool)) * (28//(2**n_pool)), 1000),
 			nn.ReLU(),
 			nn.Dropout(p = 0.5),
 			nn.Linear(1000, num_classes)
@@ -40,8 +41,11 @@ class Net(nn.Module):
 			x = transforms.Grayscale(num_output_channels = 1)(x)
 		# print(x.shape)
 		x = self.conv_layers(x)
+		# print(x.shape)
 		x = x.reshape(x.shape[0], -1)
+		# print(x.shape)
 		x = self.fc_layers(x)
+		# print(x.shape)
 		return x
 
 	def _initialize_weights(self):
@@ -62,6 +66,7 @@ class Net(nn.Module):
 					nn.init.normal_(m.bias, 0)
 
 	def create_conv_layers(self, architecture):
+		# print(architecture)
 		layers = []
 		in_channels = self.in_channels
 

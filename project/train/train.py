@@ -14,12 +14,18 @@ from torchvision.datasets import MNIST
 from myDataset import MyDataset
 from MyClass import Net
 import argparse
-# from utils import get_acc, loss_batch, fit
+
+random_seed = 42
+np.random.seed(random_seed)
+torch.manual_seed(random_seed)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
 
 parser = argparse.ArgumentParser(description='Load Weight and Evaluate')
 parser.add_argument('--ckpt', help="Path of Checkpoint")
 parser.add_argument('--model', help="model name")
 parser.add_argument('--RGB', help="rgb")
+#parser.add_argument('--aug', default = True, help="augmentation")
 
 args = parser.parse_args()
 
@@ -28,7 +34,7 @@ model = args.model
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 date = "0513"
-rgb = "3channel" if RGB == True else "1channel"
+rgb = "3channel" if eval(RGB) == True else "1channel"
 description = date + "-" + model + "-" + rgb
 
 # hyperparameters
@@ -112,7 +118,7 @@ def fit(epochs, model, criterion, optimzier, train_loader, val_loader, descripti
 		accuracy_v = sum(val_accuracy) / len(val_accuracy); val_acc.append(accuracy_v)
 		
 		if epoch % 10 == 0:
-			checkpoint = {'state_dict' : model.state_dict()}
+			# checkpoint = {'state_dict' : model.state_dict()}
 			save_checkpoint(description,model, epoch)
 			print(f"[Epoch:{epoch}/{epochs}]\n[train] cost : {cost_t:<10.4f} accuracy : {accuracy_t:<10.4f}\n [dev]  cost : {cost_v:<10.4f} accuracy : {accuracy_v:<10.4f}\n")
 
@@ -126,7 +132,7 @@ train_loader = DataLoader(train_data, batch_size=batch_size, shuffle = True)
 val_loader = DataLoader(val_data, batch_size = batch_size)
 
 # define model
-print(model, RGB)
+# print(model, RGB)
 model = Net(model = model, RGB = eval(RGB)).to(device)
 
 # optimizer
@@ -141,13 +147,13 @@ train_cost, train_acc, val_cost, val_acc = fit(epochs, model, criterion, optimiz
 plt.figure()
 plt.suptitle(description)
 plt.subplot(211)
-plt.plot(np.arange(epochs), train_cost, color = 'r', label = "train")
-plt.plot(np.arange(epochs), val_cost, color = 'b', label = "val")
+plt.plot(np.arange(len(train_cost)), train_cost, color = 'r', label = "train")
+plt.plot(np.arange(len(train_cost)), val_cost, color = 'b', label = "val")
 plt.legend(); plt.title(f"Cost Graph"); plt.xlabel("epoch"); plt.ylabel("cost")
 
-plt.subplot(222)
-plt.plot(np.arange(epochs), train_acc, color = 'r', label = "train")
-plt.plot(np.arange(epochs), val_acc, color = 'b', label = "val")
+plt.subplot(212)
+plt.plot(np.arange(len(train_acc)), train_acc, color = 'r', label = "train")
+plt.plot(np.arange(len(train_acc)), val_acc, color = 'b', label = "val")
 plt.legend(); plt.title(f"Acc Graph"); plt.xlabel("epoch"); plt.ylabel("acc")
 plt.savefig(f'Cost, Acc Graph : {description}.png')
 

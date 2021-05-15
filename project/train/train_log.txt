@@ -1,2 +1,6 @@
 Model : 0512VGG-reform     test Accuracy : 0.9927
 
+
+Model : 0513-SIMPLE-1channel     test Accuracy : 0.1340
+
+Model : 0513-SIMPLE-3channel     test Accuracy : 0.1053
