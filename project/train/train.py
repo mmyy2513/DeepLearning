@@ -1,19 +1,17 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import cv2
 import albumentations as A
 import numpy as np
-from PIL import Image
 import matplotlib.pyplot as plt
-from torchvision.datasets import MNIST
 from myDataset import MyDataset
 from MyClass import Net
 import argparse
+import time
 
 random_seed = 42
 np.random.seed(random_seed)
@@ -22,7 +20,7 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
 parser = argparse.ArgumentParser(description='Load Weight and Evaluate')
-parser.add_argument('--ckpt', help="Path of Checkpoint")
+parser.add_argument('--epoch', help="#epoch")
 parser.add_argument('--model', help="model name")
 parser.add_argument('--RGB', help="rgb")
 #parser.add_argument('--aug', default = True, help="augmentation")
@@ -33,26 +31,18 @@ RGB = args.RGB
 model = args.model
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-date = "0513"
+date = str(time.localtime().tm_mon)+str(time.localtime().tm_mday)
 rgb = "3channel" if eval(RGB) == True else "1channel"
 description = date + "-" + model + "-" + rgb
 
 # hyperparameters
 batch_size = 1024
 lr = 1e-2
-epochs = 50
+epochs = int(args.epoch)
 
 transform = transforms.Compose([
-	transforms.Grayscale(num_output_channels = 3),
 	transforms.ToTensor(),
-	transforms.Normalize((0.1306, 0.1306, 0.1306), (0.3081, 0.3081, 0.3081)),
-	transforms.RandomApply([
-			transforms.ColorJitter(),
-			transforms.RandomAffine(10),
-			transforms.RandomPerspective(),
-			transforms.GaussianBlur(3),
-			transforms.RandomErasing()
-			])
+	transforms.Normalize([0.7552, 0.7443, 0.7359], [0.3141, 0.3169, 0.3237]),
 	])
 
 
@@ -80,7 +70,7 @@ def loss_batch(model, criterion, data, target, optimizer = None):
 
 # save ckpt
 def save_checkpoint(desc, model, num):
-	filename = './ckpt/{}-{}.pt'.format(desc,num)
+	filename = './ckpt/{}-{}.pt'.format(desc, num)
 	torch.save(model.state_dict(), filename)
 	print("=> Saving checkpoint : {}".format(filename))
 
@@ -124,12 +114,14 @@ def fit(epochs, model, criterion, optimzier, train_loader, val_loader, descripti
 
 	return train_cost, train_acc, val_cost, val_acc
 
-train_data = MNIST(root = "./", train = True, transform = transform, download = True)
+trainset = datasets.ImageFolder(root = "dataset", transform = transform)
+#print(trainset)
+train_data, val_data = torch.utils.data.random_split(trainset, [20000, 4805])
 
-train_data, val_data = torch.utils.data.random_split(train_data, [50000, 10000])
 
 train_loader = DataLoader(train_data, batch_size=batch_size, shuffle = True)
 val_loader = DataLoader(val_data, batch_size = batch_size)
+
 
 # define model
 # print(model, RGB)
@@ -144,7 +136,7 @@ criterion = nn.CrossEntropyLoss()
 train_cost, train_acc, val_cost, val_acc = fit(epochs, model, criterion, optimizer, train_loader, val_loader, description)
 
 # save graph
-plt.figure()
+plt.figure(figsize = (12,8))
 plt.suptitle(description)
 plt.subplot(211)
 plt.plot(np.arange(len(train_cost)), train_cost, color = 'r', label = "train")
@@ -182,5 +174,5 @@ with torch.no_grad():
 test_accuracy = sum(acc_list) / len(acc_list)
 
 with open("train_log.txt","a") as f:
-	f.write(f"\nModel : {description}     test Accuracy : {test_accuracy:.4f}\n")
+	f.write(f"\nModel : {description}     test Accuracy : {test_accuracy:.4f}(Epoch : {epochs})\n")
 print(f"\nModel : {description}     test Accuracy : {test_accuracy:.4f}\n")
