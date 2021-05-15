@@ -13,7 +13,7 @@ parser.add_argument('--RGB', help="rgb")
 
 args = parser.parse_args()
 
-RGB = args.RGB
+RGB = False if args.RGB == "False" else True
 model = args.model
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 batch_size = 128
@@ -23,8 +23,8 @@ def get_acc(pred, label):
 	preds = torch.argmax(pred, dim = 1)
 	return (label == preds).float().mean()
 
-def load_model(ckpt):
-	model = Net(model = args.model, RGB = eval(RGB))
+def load_model(ckpt, model, RGB):
+	model = Net(model = model, RGB = RGB)
 	model.load_state_dict(torch.load(ckpt))
 	return model
 
@@ -37,7 +37,7 @@ dataset = MyDataset(csv_file = 'testing.csv', root = 'targets', transform = tran
 test_loader = DataLoader(dataset, batch_size = batch_size)
 
 
-model = load_model(args.ckpt)
+model = load_model(args.ckpt, args.model, RGB)
 model = model.to(device)
 model.eval()
 

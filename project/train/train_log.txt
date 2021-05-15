@@ -5,6 +5,14 @@ Model : 0513-SIMPLE-1channel     test Accuracy : 0.1340
 
 Model : 0513-SIMPLE-3channel     test Accuracy : 0.1053
 
-Model : 515-SIMPLE-1channel     test Accuracy : 0.6938
+=== new data ===
 
-Model : 515-SIMPLE-1channel     test Accuracy : 0.7129
+Model : 515-SIMPLE-1channel     test Accuracy : 0.6938(Epoch : 50)
+
+Model : 515-SIMPLE-1channel     test Accuracy : 0.7129(Epoch : 100)
+
+Model : 515-SIMPLE-3channel     test Accuracy : 0.6794(Epoch : 100)
+
+Model : 515-2M-3channel     test Accuracy : 0.7751(Epoch : 100)
+
+Model : 515-2M-1channel     test Accuracy : 0.8373(Epoch : 100)

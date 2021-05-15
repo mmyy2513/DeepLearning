@@ -14,6 +14,7 @@ from PIL import Image
 VGG_types = {
 	'SIMPLE' : [32, 16, 0],
 	'2M' : [64, 128, 'M', 256, 512, 'M', 2],
+	'3M' : [64, 128, 'M', 256, 512, 'M', 512, 256, 256, 'M', 3],
 }
 
 class Net(nn.Module):

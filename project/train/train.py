@@ -19,7 +19,7 @@ torch.manual_seed(random_seed)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
-parser = argparse.ArgumentParser(description='Load Weight and Evaluate')
+parser = argparse.ArgumentParser(description='')
 parser.add_argument('--epoch', help="#epoch")
 parser.add_argument('--model', help="model name")
 parser.add_argument('--RGB', help="rgb")
@@ -136,7 +136,7 @@ criterion = nn.CrossEntropyLoss()
 train_cost, train_acc, val_cost, val_acc = fit(epochs, model, criterion, optimizer, train_loader, val_loader, description)
 
 # save graph
-plt.figure(figsize = (12,8))
+plt.figure(figsize = (12,12))
 plt.suptitle(description)
 plt.subplot(211)
 plt.plot(np.arange(len(train_cost)), train_cost, color = 'r', label = "train")
