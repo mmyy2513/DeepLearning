@@ -5,14 +5,18 @@ from torch.utils.data import DataLoader
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import cv2
-import albumentations as A
 import numpy as np
 import matplotlib.pyplot as plt
-from myDataset import MyDataset
-from MyClass import Net
 import argparse
 import time
+import os
 from torchvision.datasets import MNIST
+
+from MyClass import Net
+
+############################# init
+
+memo = ""
 
 random_seed = 42
 np.random.seed(random_seed)
@@ -24,7 +28,6 @@ parser = argparse.ArgumentParser(description='')
 parser.add_argument('--epoch', help="#epoch")
 parser.add_argument('--model', help="model name")
 parser.add_argument('--RGB', help="rgb")
-#parser.add_argument('--aug', default = True, help="augmentation")
 
 args = parser.parse_args()
 
@@ -36,10 +39,13 @@ date = str(time.localtime().tm_mon)+str(time.localtime().tm_mday)
 rgb = "3channel" if eval(RGB) == True else "1channel"
 description = date + "-" + model + "-" + rgb
 
-# hyperparameters
-batch_size = 1024
+batch_size = 512
 lr = 1e-2
 epochs = int(args.epoch)
+
+
+
+############################# utils
 
 # acc function
 def get_acc(pred, label):
@@ -65,7 +71,10 @@ def loss_batch(model, criterion, data, target, optimizer = None):
 
 # save ckpt
 def save_checkpoint(desc, model, num):
-	filename = './ckpt/{}-{}.pt'.format(desc, num)
+	path = f"./ckpt/{desc}"
+	if not os.path.exists(path):
+            os.makedirs(path)
+	filename = path + f'/{num}.pt'
 	torch.save(model.state_dict(), filename)
 	print("=> Saving checkpoint : {}".format(filename))
 
@@ -103,11 +112,14 @@ def fit(epochs, model, criterion, optimzier, train_loader, val_loader, descripti
 		accuracy_v = sum(val_accuracy) / len(val_accuracy); val_acc.append(accuracy_v)
 		
 		if epoch % 10 == 0:
-			# checkpoint = {'state_dict' : model.state_dict()}
 			save_checkpoint(description,model, epoch)
 			print(f"[Epoch:{epoch}/{epochs}]\n[train] cost : {cost_t:<10.4f} accuracy : {accuracy_t:<10.4f}\n [dev]  cost : {cost_v:<10.4f} accuracy : {accuracy_v:<10.4f}\n")
 
 	return train_cost, train_acc, val_cost, val_acc
+
+
+
+############################# Train
 
 transform_custom = transforms.Compose([
 	transforms.ToTensor(),
@@ -117,15 +129,17 @@ transform_mnist = transforms.Compose([
 	transforms.Grayscale(num_output_channels=3),
     transforms.ToTensor(),
     transforms.Normalize([0.1307, 0.1307, 0.1307], [0.3081, 0.3081, 0.3081]),
+    transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
+    transforms.RandomRotation(10),
+    transforms.RandomApply([transforms.GaussianBlur(3, sigma=(0.1, 2.0))]),
+    transforms.RandomApply([transforms.RandomErasing()]),
 	])
 
+# load train dataset
 trainset_custom = datasets.ImageFolder(root = "dataset", transform = transform_custom)
 trainset_mnist = MNIST(root = './', train=True, download=True, transform = transform_mnist)
 trainset_mnist, _ = torch.utils.data.random_split(trainset_mnist, [20000, len(trainset_mnist) - 20000])
-
 trainset = torch.utils.data.ConcatDataset([trainset_mnist, trainset_custom])
-
-len_trainset = len(trainset)
 
 train_data, val_data = torch.utils.data.random_split(trainset, [36000,8805])
 
@@ -142,6 +156,7 @@ optimizer = optim.Adam(model.parameters())
 # loss function
 criterion = nn.CrossEntropyLoss()
 
+# train
 train_cost, train_acc, val_cost, val_acc = fit(epochs, model, criterion, optimizer, train_loader, val_loader, description)
 
 # save graph
@@ -156,9 +171,12 @@ plt.subplot(212)
 plt.plot(np.arange(len(train_acc)), train_acc, color = 'r', label = "train")
 plt.plot(np.arange(len(train_acc)), val_acc, color = 'b', label = "val")
 plt.legend(); plt.title(f"Acc Graph"); plt.xlabel("epoch"); plt.ylabel("acc")
-plt.savefig(f'Cost, Acc Graph : {description}.png')
+plt.savefig(f'./graphs/Cost, Acc Graph : {description}.png')
 
-# test
+
+
+############################# Test
+
 transform_custom = transforms.Compose([
 	transforms.ToTensor(),
 	transforms.Resize((28, 28)),
@@ -169,17 +187,17 @@ transform_mnist = transforms.Compose([
     transforms.Resize((28, 28)),
 	])
 
-
+# load test dataset
 testset_custom = datasets.ImageFolder(root = "targets", transform = transform_custom)
 testset_mnist = MNIST(root = './', train=False, download=True, transform = transform_mnist)
-testset_mnist, _ = torch.utils.data.random_split(trainset_mnist, [200, len(trainset_mnist) - 200])
+testset_mnist, _ = torch.utils.data.random_split(testset_mnist, [200, len(testset_mnist) - 200])
 
 testset = torch.utils.data.ConcatDataset([testset_mnist, testset_custom])
 
 test_loader = DataLoader(testset, batch_size=batch_size)
 
+# test
 model.eval()
-
 acc_list = []
 with torch.no_grad():
 	for data, target in test_loader:
@@ -193,6 +211,7 @@ with torch.no_grad():
 		acc_list.append(acc)
 test_accuracy = sum(acc_list) / len(acc_list)
 
+# save log
 with open("train_log.txt","a") as f:
 	f.write(f"\nModel : {description}     test Accuracy : {test_accuracy:.4f}(Epoch : {epochs})\n")
 print(f"\nModel : {description}     test Accuracy : {test_accuracy:.4f}\n")

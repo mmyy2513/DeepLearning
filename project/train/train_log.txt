@@ -1,9 +1,11 @@
 Model : 0512VGG-reform     test Accuracy : 0.9927
 
 
+
 Model : 0513-SIMPLE-1channel     test Accuracy : 0.1340
 
 Model : 0513-SIMPLE-3channel     test Accuracy : 0.1053
+
 
 === new data ===
 
@@ -26,3 +28,12 @@ Model : 515-2M-1-1channel     test Accuracy : 0.8230(Epoch : 100)
 Model : 515-2M-1-3channel     test Accuracy : 0.8134(Epoch : 100)
 
 Model : 515-SIMPLE-1channel     test Accuracy : 0.6822(Epoch : 1)
+
+
+=== concat mnist, custom ===
+
+Model : 515-3M-1channel     test Accuracy : 0.9413(Epoch : 100) # 80.pt best(0.9451)
+
+Model : 515-3M-3channel     test Accuracy : 0.9291(Epoch : 100)
+
+Model : 516-0M-1channel     test Accuracy : 0.8900(Epoch : 100)

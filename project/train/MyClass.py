@@ -1,32 +1,25 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-from torch.utils.data import DataLoader, Dataset
-import torchvision.datasets as datasets
 import torchvision.transforms as transforms
-import cv2
-import albumentations as A
-import numpy as np
-from PIL import Image
 
-
-VGG_types = {
+model_types = {
 	'SIMPLE' : [32, 16, 0],
+	'0M' : [64, 128, 256, 256, 128, 64, 0],
 	'2M' : [64, 128, 'M', 256, 512, 'M', 2],
 	'2M-1' : [64, 128, 'M', 256, 256, 512, 'M', 2],
 	'3M' : [64, 128, 'M', 256, 512, 'M', 512, 256, 256, 'M', 3],
+	'3M-1' : [64, 128, 'M', 256, 256, 512, 'M', 512, 256, 256, 'M', 3],
 }
 
 class Net(nn.Module):
 	def __init__(self,  model, num_classes=10, init_weights=True, RGB = True):
 		super(Net, self).__init__()
-		n_pool = VGG_types[model].pop()
-		last = VGG_types[model][-1] if type(VGG_types[model][-1]) == int else VGG_types[model][-2]
+		n_pool = model_types[model].pop()
+		last = model_types[model][-1] if type(model_types[model][-1]) == int else model_types[model][-2]
 		self.RGB = RGB
 		self.in_channels = 3 if RGB == True else 1
 		self.num_classes = num_classes
-		self.conv_layers = self.create_conv_layers(VGG_types[model])
+		self.conv_layers = self.create_conv_layers(model_types[model])
 		
 		self.fc_layers = nn.Sequential(	
 			nn.Linear(last * (28//(2**n_pool)) * (28//(2**n_pool)), 1000),
@@ -52,7 +45,6 @@ class Net(nn.Module):
 		return x
 
 	def _initialize_weights(self):
-			# modules -> Sequential 모든 layer
 			for m in self.modules():
 				if isinstance(m, nn.Conv2d):
 					# he_initialization
@@ -69,7 +61,7 @@ class Net(nn.Module):
 					nn.init.normal_(m.bias, 0)
 
 	def create_conv_layers(self, architecture):
-		# print(architecture)
+		
 		layers = []
 		in_channels = self.in_channels
 
@@ -86,7 +78,6 @@ class Net(nn.Module):
 					nn.BatchNorm2d(x),
 					nn.ReLU()
 				]
-				# channel num --> next input
 				in_channels = x
 
 			elif x == 'M':  # maxpooling

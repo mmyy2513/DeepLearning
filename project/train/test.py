@@ -1,9 +1,8 @@
 import torch
-import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset, ConcatDataset, random_split
 import torchvision.transforms as transforms
+import torchvision.datasets as datasets
 import argparse
-from myDataset import MyDataset
 from MyClass import Net
 from torchvision.datasets import MNIST
 
@@ -31,25 +30,25 @@ def load_model(ckpt, model, RGB):
 	model.load_state_dict(torch.load(ckpt))
 	return model
 
-transform = transforms.Compose([
+# test
+transform_custom = transforms.Compose([
 	transforms.ToTensor(),
 	transforms.Resize((28, 28)),
 	])
-
-transform1 = transforms.Compose([
-	transforms.Grayscale(num_output_channels = 3),
-	transforms.ToTensor(),
-	
+transform_mnist = transforms.Compose([
+	transforms.Grayscale(num_output_channels=3),
+    transforms.ToTensor(),
+    transforms.Resize((28, 28)),
 	])
 
-dataset2 = MNIST(root = './', train=False, download=True, transform = transform1)
-dataset2, _ = random_split(dataset2, [200, len(dataset2)-200])
-dataset1 = MyDataset(csv_file = 'testing.csv', root = 'targets', transform = transform)
-dataset = ConcatDataset([dataset1, dataset2])
 
+testset_custom = datasets.ImageFolder(root = "targets", transform = transform_custom)
+testset_mnist = MNIST(root = './', train=False, download=True, transform = transform_mnist)
+testset_mnist, _ = torch.utils.data.random_split(testset_mnist, [200, len(testset_mnist) - 200])
 
-test_loader = DataLoader(dataset, batch_size = batch_size, shuffle= True)
+testset = torch.utils.data.ConcatDataset([testset_mnist, testset_custom])
 
+test_loader = DataLoader(testset, batch_size=batch_size, shuffle = True)
 
 model = load_model(args.ckpt, args.model, RGB = RGB)
 model = model.to(device)
@@ -66,9 +65,13 @@ with torch.no_grad():
 
 		acc = get_acc(pred, target)
 		acc_list.append(acc)
-		# import matplotlib.pyplot as plt 
-		# plt.imshow(data.cpu().reshape(3,28,28).numpy().transpose(1,2,0))
-		# plt.show()
-		# print(pred.argmax(1).item()," ----- ", target.item())
+		import matplotlib.pyplot as plt 
+		#print(data.shape)
+		# print(target.shape)
+		# print(pred.shape)
+		# for i in range(data.shape[0]):
+		# 	plt.imshow(data[i].cpu().reshape(3,28,28).numpy().transpose(1,2,0))
+		# 	plt.show()
+		# 	print(pred.argmax(1)[i].item()," ----- ", target[i].item())
 test_accuracy = sum(acc_list) / len(acc_list)
 print(f"\nTest Accuracy : {test_accuracy:.4f}\t\t(checkpoint = {args.ckpt})")
