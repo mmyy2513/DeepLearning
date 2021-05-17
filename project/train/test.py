@@ -5,6 +5,13 @@ import torchvision.datasets as datasets
 import argparse
 from MyClass import Net
 from torchvision.datasets import MNIST
+import numpy as np
+
+random_seed = 42
+np.random.seed(random_seed)
+torch.manual_seed(random_seed)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
 
 
 parser = argparse.ArgumentParser(description='Load Weight and Evaluate')

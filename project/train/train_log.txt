@@ -37,3 +37,12 @@ Model : 515-3M-1channel     test Accuracy : 0.9413(Epoch : 100) # 80.pt best(0.9
 Model : 515-3M-3channel     test Accuracy : 0.9291(Epoch : 100)
 
 Model : 516-0M-1channel     test Accuracy : 0.8900(Epoch : 100)
+
+Model : 517-3M-1-1channel     test Accuracy : 0.9218(Epoch : 100)
+
+Model : 517-3M-1-3channel     test Accuracy : 0.9267(Epoch : 100)
+
+
+=== add new data
+
+Model : 517-3M-1channel     test Accuracy : 0.9590 # 60.pt

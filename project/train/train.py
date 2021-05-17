@@ -39,7 +39,7 @@ date = str(time.localtime().tm_mon)+str(time.localtime().tm_mday)
 rgb = "3channel" if eval(RGB) == True else "1channel"
 description = date + "-" + model + "-" + rgb
 
-batch_size = 512
+batch_size = 2 ** 12
 lr = 1e-2
 epochs = int(args.epoch)
 
@@ -123,7 +123,7 @@ def fit(epochs, model, criterion, optimzier, train_loader, val_loader, descripti
 
 transform_custom = transforms.Compose([
 	transforms.ToTensor(),
-	transforms.Normalize([0.7552, 0.7443, 0.7359], [0.3141, 0.3169, 0.3237]),
+	transforms.Normalize([0.7039, 0.6939, 0.6866], [0.3128, 0.3136, 0.3185]),
 	])
 transform_mnist = transforms.Compose([
 	transforms.Grayscale(num_output_channels=3),
@@ -141,7 +141,7 @@ trainset_mnist = MNIST(root = './', train=True, download=True, transform = trans
 trainset_mnist, _ = torch.utils.data.random_split(trainset_mnist, [20000, len(trainset_mnist) - 20000])
 trainset = torch.utils.data.ConcatDataset([trainset_mnist, trainset_custom])
 
-train_data, val_data = torch.utils.data.random_split(trainset, [36000,8805])
+train_data, val_data = torch.utils.data.random_split(trainset, [len(trainset)-10000,10000])
 
 train_loader = DataLoader(train_data, batch_size=batch_size, shuffle = True)
 val_loader = DataLoader(val_data, batch_size = batch_size)
@@ -149,7 +149,7 @@ val_loader = DataLoader(val_data, batch_size = batch_size)
 
 # define model
 model = Net(model = model, RGB = eval(RGB)).to(device)
-
+#model.load_state_dict(torch.load("ckpt/517-3M-1channel/50.pt"))
 # optimizer
 optimizer = optim.Adam(model.parameters())
 
@@ -197,21 +197,27 @@ testset = torch.utils.data.ConcatDataset([testset_mnist, testset_custom])
 test_loader = DataLoader(testset, batch_size=batch_size)
 
 # test
-model.eval()
-acc_list = []
-with torch.no_grad():
-	for data, target in test_loader:
-		
-		data = data.to(device)
-		target = target.to(device)
-		
-		pred = model(data)
+ckpt_path = f"ckpt/{desc}/"
+result = {}
+for pt in os.listdir(ckpt_path):
+	model.load_state_dict(torch.load(ckpt_path + pt))	
+	model.eval()
+	acc_list = []
+	with torch.no_grad():
+		for data, target in test_loader:
+			data = data.to(device)
+			target = target.to(device)
+			
+			pred = model(data)
 
-		acc = get_acc(pred, target)
-		acc_list.append(acc)
-test_accuracy = sum(acc_list) / len(acc_list)
+			acc = get_acc(pred, target)
+			acc_list.append(acc)
+	test_accuracy = sum(acc_list) / len(acc_list)
+	result[pt] = test_accuracy
+result = sorted(result.items(), reverse = True, key = lambda item : item[1])
+best = result[0]
 
 # save log
 with open("train_log.txt","a") as f:
-	f.write(f"\nModel : {description}     test Accuracy : {test_accuracy:.4f}(Epoch : {epochs})\n")
-print(f"\nModel : {description}     test Accuracy : {test_accuracy:.4f}\n")
+	f.write(f"\nModel : {description}     test Accuracy : {best[1]:.4f} (epoch : {best[0][:-3]})\n")
+print(f"\nModel : {description}     test Accuracy : {best[1]:.4f}\n")

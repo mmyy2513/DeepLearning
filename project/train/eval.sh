@@ -1,10 +1,4 @@
-python3 test.py --RGB=False --model=0M --ckpt=ckpt/516-0M-1channel/10.pt
-python3 test.py --RGB=False --model=0M --ckpt=ckpt/516-0M-1channel/20.pt
-python3 test.py --RGB=False --model=0M --ckpt=ckpt/516-0M-1channel/30.pt
-python3 test.py --RGB=False --model=0M --ckpt=ckpt/516-0M-1channel/40.pt
-python3 test.py --RGB=False --model=0M --ckpt=ckpt/516-0M-1channel/50.pt
-python3 test.py --RGB=False --model=0M --ckpt=ckpt/516-0M-1channel/60.pt
-python3 test.py --RGB=False --model=0M --ckpt=ckpt/516-0M-1channel/70.pt
-python3 test.py --RGB=False --model=0M --ckpt=ckpt/516-0M-1channel/80.pt
-python3 test.py --RGB=False --model=0M --ckpt=ckpt/516-0M-1channel/90.pt
-python3 test.py --RGB=False --model=0M --ckpt=ckpt/516-0M-1channel/100.pt
+python3 test.py --RGB=False --model=3M --ckpt=ckpt/517-3M-1channel/70.pt
+
+
+

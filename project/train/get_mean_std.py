@@ -9,12 +9,11 @@ import torchvision
 from torchvision.datasets import MNIST
 
 transform = transforms.Compose([
-    transforms.Grayscale(num_output_channels=3),
     transforms.ToTensor()
 ])
 
-# trainset = datasets.ImageFolder(root = "dataset", transform = transform)
-trainset = MNIST(root = './', train=True, download=True, transform = transform)
+trainset = datasets.ImageFolder(root = "dataset", transform = transform)
+#trainset = MNIST(root = './', train=True, download=True, transform = transform)
 train_loader = DataLoader(trainset)
 def get_mean_std(loader):
     # VAR[X] = E[X**2] - E[X]**2
