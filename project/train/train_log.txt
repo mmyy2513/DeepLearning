@@ -46,3 +46,11 @@ Model : 517-3M-1-3channel     test Accuracy : 0.9267(Epoch : 100)
 === add new data
 
 Model : 517-3M-1channel     test Accuracy : 0.9590 # 60.pt
+
+Model : 517-3M-2-1channel     test Accuracy : 0.8949 (epoch : 60)
+
+
+=== Model Test
+
+Model : 517-SIMPLE-1channel-BN_NO     test Accuracy : 0.7848 (epoch : 50)
+

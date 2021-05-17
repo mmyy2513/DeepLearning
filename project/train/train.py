@@ -16,7 +16,7 @@ from MyClass import Net
 
 ############################# init
 
-memo = ""
+
 
 random_seed = 42
 np.random.seed(random_seed)
@@ -28,18 +28,22 @@ parser = argparse.ArgumentParser(description='')
 parser.add_argument('--epoch', help="#epoch")
 parser.add_argument('--model', help="model name")
 parser.add_argument('--RGB', help="rgb")
+parser.add_argument('--memo', default = '', help="note")
+
 
 args = parser.parse_args()
 
 RGB = args.RGB
 model = args.model
+memo = args.memo
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 date = str(time.localtime().tm_mon)+str(time.localtime().tm_mday)
 rgb = "3channel" if eval(RGB) == True else "1channel"
 description = date + "-" + model + "-" + rgb
-
-batch_size = 2 ** 12
+if memo != "":
+	description = date + "-" + model + "-" + rgb + "-" + memo
+batch_size = 2 ** 13
 lr = 1e-2
 epochs = int(args.epoch)
 
@@ -80,7 +84,7 @@ def save_checkpoint(desc, model, num):
 
 
 # fit
-def fit(epochs, model, criterion, optimzier, train_loader, val_loader, description):
+def fit(epochs, model, criterion, optimzier, scheduler, train_loader, val_loader, description):
 	train_cost = []
 	train_acc = []
 	val_cost = []
@@ -109,11 +113,13 @@ def fit(epochs, model, criterion, optimzier, train_loader, val_loader, descripti
 				val_loss.append(loss); val_accuracy.append(acc)
 		
 		cost_v = sum(val_loss) / len(val_loss); val_cost.append(cost_v)
+		scheduler.step(cost_v)
 		accuracy_v = sum(val_accuracy) / len(val_accuracy); val_acc.append(accuracy_v)
 		
 		if epoch % 10 == 0:
 			save_checkpoint(description,model, epoch)
 			print(f"[Epoch:{epoch}/{epochs}]\n[train] cost : {cost_t:<10.4f} accuracy : {accuracy_t:<10.4f}\n [dev]  cost : {cost_v:<10.4f} accuracy : {accuracy_v:<10.4f}\n")
+		
 
 	return train_cost, train_acc, val_cost, val_acc
 
@@ -150,14 +156,18 @@ val_loader = DataLoader(val_data, batch_size = batch_size)
 # define model
 model = Net(model = model, RGB = eval(RGB)).to(device)
 #model.load_state_dict(torch.load("ckpt/517-3M-1channel/50.pt"))
+
 # optimizer
-optimizer = optim.Adam(model.parameters())
+optimizer = optim.Adam(model.parameters(), lr = lr)
+
+# lr scheduler
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor= 0.1, patience=5, verbose=True)
 
 # loss function
 criterion = nn.CrossEntropyLoss()
 
 # train
-train_cost, train_acc, val_cost, val_acc = fit(epochs, model, criterion, optimizer, train_loader, val_loader, description)
+train_cost, train_acc, val_cost, val_acc = fit(epochs, model, criterion, optimizer, scheduler, train_loader, val_loader, description)
 
 # save graph
 plt.figure(figsize = (12,12))
@@ -197,7 +207,7 @@ testset = torch.utils.data.ConcatDataset([testset_mnist, testset_custom])
 test_loader = DataLoader(testset, batch_size=batch_size)
 
 # test
-ckpt_path = f"ckpt/{desc}/"
+ckpt_path = f"ckpt/{description}/"
 result = {}
 for pt in os.listdir(ckpt_path):
 	model.load_state_dict(torch.load(ckpt_path + pt))	

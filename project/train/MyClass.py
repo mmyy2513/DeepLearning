@@ -25,7 +25,7 @@ class Net(nn.Module):
 		self.fc_layers = nn.Sequential(	
 			nn.Linear(last * (28//(2**n_pool)) * (28//(2**n_pool)), 1000),
 			nn.ReLU(),
-			nn.Dropout(p = 0.5),
+			#nn.Dropout(p = 0.5),
 			nn.Linear(1000, num_classes)
 			)
 		if init_weights == True:
@@ -76,7 +76,7 @@ class Net(nn.Module):
 							  kernel_size=(3, 3),
 							  stride=(1, 1),
 							  padding=(1, 1)),
-					nn.BatchNorm2d(x),
+					#nn.BatchNorm2d(x),
 					nn.ReLU()
 				]
 				in_channels = x
