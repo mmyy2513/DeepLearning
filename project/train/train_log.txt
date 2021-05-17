@@ -1,10 +1,13 @@
-Model : 0512VGG-reform     test Accuracy : 0.9927
+Model : 0512VGG-reform     test Accuracy : 0.9927 # Mnist 학습, Mnist test
 
 
+=== new test data ===
 
 Model : 0513-SIMPLE-1channel     test Accuracy : 0.1340
 
 Model : 0513-SIMPLE-3channel     test Accuracy : 0.1053
+
+# Handwritten data외에 작동 X
 
 
 === new data ===
@@ -27,7 +30,7 @@ Model : 515-2M-1-1channel     test Accuracy : 0.8230(Epoch : 100)
 
 Model : 515-2M-1-3channel     test Accuracy : 0.8134(Epoch : 100)
 
-Model : 515-SIMPLE-1channel     test Accuracy : 0.6822(Epoch : 1)
+# 학습 데이터가 Digital 숫자가 대부분 --> 손글씨 인식에 약함
 
 
 === concat mnist, custom ===
@@ -42,15 +45,23 @@ Model : 517-3M-1-1channel     test Accuracy : 0.9218(Epoch : 100)
 
 Model : 517-3M-1-3channel     test Accuracy : 0.9267(Epoch : 100)
 
+# 3channel vs. 1channel --> 대부분 경우 1channel acc더 높음
+# 데이터 더 추가해보자
+# MaxPooling 안해주면 데이터 너무 커서 오래걸리기도 하고 성능도 그닥
 
-=== add new data
+
+=== add new data ===
 
 Model : 517-3M-1channel     test Accuracy : 0.9590 # 60.pt
 
-Model : 517-3M-2-1channel     test Accuracy : 0.8949 (epoch : 60)
+Model : 517-3M-2-1channel     test Accuracy : 0.8949 (epoch : 60) 
+
+# Model Capacity 줄였더니 acc 낮아짐
 
 
-=== Model Test
 
-Model : 517-SIMPLE-1channel-BN_NO     test Accuracy : 0.7848 (epoch : 50)
+=== Model Test (Batch Normalzation, Dropout) ===
 
+Model : 517-3M-1channel-BN_NO,Dropout_NO     test Accuracy : 0.1002 (epoch : 0)  # 수렴 속도 매우 느림
+
+Model : 517-3M-1channel-Dropout_NO     test Accuracy : 0.9193 (epoch : 20) # 수렴 속도 훨씬 빠름

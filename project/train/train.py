@@ -14,22 +14,22 @@ from torchvision.datasets import MNIST
 
 from MyClass import Net
 
+
 ############################# init
 
-
-
+# random seed
 random_seed = 42
 np.random.seed(random_seed)
 torch.manual_seed(random_seed)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
+# set
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--epoch', help="#epoch")
 parser.add_argument('--model', help="model name")
 parser.add_argument('--RGB', help="rgb")
 parser.add_argument('--memo', default = '', help="note")
-
 
 args = parser.parse_args()
 
@@ -40,13 +40,16 @@ memo = args.memo
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 date = str(time.localtime().tm_mon)+str(time.localtime().tm_mday)
 rgb = "3channel" if eval(RGB) == True else "1channel"
-description = date + "-" + model + "-" + rgb
+
 if memo != "":
 	description = date + "-" + model + "-" + rgb + "-" + memo
-batch_size = 2 ** 13
+else:
+	description = date + "-" + model + "-" + rgb	
+
+# hyperparameters
+batch_size = 2 ** 10
 lr = 1e-2
 epochs = int(args.epoch)
-
 
 
 ############################# utils
@@ -72,7 +75,6 @@ def loss_batch(model, criterion, data, target, optimizer = None):
 
 	return loss.item(), acc
 
-
 # save ckpt
 def save_checkpoint(desc, model, num):
 	path = f"./ckpt/{desc}"
@@ -81,7 +83,6 @@ def save_checkpoint(desc, model, num):
 	filename = path + f'/{num}.pt'
 	torch.save(model.state_dict(), filename)
 	print("=> Saving checkpoint : {}".format(filename))
-
 
 # fit
 def fit(epochs, model, criterion, optimzier, scheduler, train_loader, val_loader, description):
@@ -124,7 +125,6 @@ def fit(epochs, model, criterion, optimzier, scheduler, train_loader, val_loader
 	return train_cost, train_acc, val_cost, val_acc
 
 
-
 ############################# Train
 
 transform_custom = transforms.Compose([
@@ -152,10 +152,9 @@ train_data, val_data = torch.utils.data.random_split(trainset, [len(trainset)-10
 train_loader = DataLoader(train_data, batch_size=batch_size, shuffle = True)
 val_loader = DataLoader(val_data, batch_size = batch_size)
 
-
 # define model
-model = Net(model = model, RGB = eval(RGB)).to(device)
-#model.load_state_dict(torch.load("ckpt/517-3M-1channel/50.pt"))
+model = Net(init_weights=False,model = model, RGB = eval(RGB)).to(device)
+#model.load_state_dict(torch.load("ckpt/517-3M-1channel-Dropout_NO/20.pt"))
 
 # optimizer
 optimizer = optim.Adam(model.parameters(), lr = lr)
@@ -182,7 +181,6 @@ plt.plot(np.arange(len(train_acc)), train_acc, color = 'r', label = "train")
 plt.plot(np.arange(len(train_acc)), val_acc, color = 'b', label = "val")
 plt.legend(); plt.title(f"Acc Graph"); plt.xlabel("epoch"); plt.ylabel("acc")
 plt.savefig(f'./graphs/Cost, Acc Graph : {description}.png')
-
 
 
 ############################# Test
@@ -222,12 +220,15 @@ for pt in os.listdir(ckpt_path):
 
 			acc = get_acc(pred, target)
 			acc_list.append(acc)
+
 	test_accuracy = sum(acc_list) / len(acc_list)
 	result[pt] = test_accuracy
+
 result = sorted(result.items(), reverse = True, key = lambda item : item[1])
 best = result[0]
 
 # save log
 with open("train_log.txt","a") as f:
 	f.write(f"\nModel : {description}     test Accuracy : {best[1]:.4f} (epoch : {best[0][:-3]})\n")
+
 print(f"\nModel : {description}     test Accuracy : {best[1]:.4f}\n")
