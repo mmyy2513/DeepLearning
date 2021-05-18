@@ -25,7 +25,7 @@ RGB = False if args.RGB == "False" else True
 #print(RGB)
 model = args.model
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-batch_size = 128
+batch_size = 1024
 
 # acc function
 def get_acc(pred, label):
@@ -72,7 +72,7 @@ with torch.no_grad():
 
 		acc = get_acc(pred, target)
 		acc_list.append(acc)
-		import matplotlib.pyplot as plt 
+		#import matplotlib.pyplot as plt 
 		#print(data.shape)
 		# print(target.shape)
 		# print(pred.shape)

@@ -1,3 +1,5 @@
+
+
 Model : 0512VGG-reform     test Accuracy : 0.9927 # Mnist 학습, Mnist test
 
 
@@ -12,22 +14,16 @@ Model : 0513-SIMPLE-3channel     test Accuracy : 0.1053
 
 === new data ===
 
-Model : 515-SIMPLE-1channel     test Accuracy : 0.6938(Epoch : 50)
-
-Model : 515-SIMPLE-1channel     test Accuracy : 0.7129(Epoch : 100)
-
+Model : 515-SIMPLE-1channel     test Accuracy : 0.7129(Epoch : 100) *1
 Model : 515-SIMPLE-3channel     test Accuracy : 0.6794(Epoch : 100)
 
-Model : 515-2M-3channel     test Accuracy : 0.7751(Epoch : 100)
-
+Model : 515-2M-3channel     test Accuracy : 0.7751(Epoch : 100) *1
 Model : 515-2M-1channel     test Accuracy : 0.8373(Epoch : 100)
 
-Model : 515-3M-1channel     test Accuracy : 0.8852(Epoch : 100)  # 60.pt best(0.9015)
-
+Model : 515-3M-1channel     test Accuracy : 0.9015(Epoch : 100)  *1
 Model : 515-3M-3channel     test Accuracy : 0.8660(Epoch : 100)
 
-Model : 515-2M-1-1channel     test Accuracy : 0.8230(Epoch : 100)
-
+Model : 515-2M-1-1channel     test Accuracy : 0.8230(Epoch : 100) *1
 Model : 515-2M-1-3channel     test Accuracy : 0.8134(Epoch : 100)
 
 # 학습 데이터가 Digital 숫자가 대부분 --> 손글씨 인식에 약함
@@ -35,33 +31,48 @@ Model : 515-2M-1-3channel     test Accuracy : 0.8134(Epoch : 100)
 
 === concat mnist, custom ===
 
-Model : 515-3M-1channel     test Accuracy : 0.9413(Epoch : 100) # 80.pt best(0.9451)
-
+Model : 515-3M-1channel     test Accuracy : 0.9413(Epoch : 100) *1
 Model : 515-3M-3channel     test Accuracy : 0.9291(Epoch : 100)
 
 Model : 516-0M-1channel     test Accuracy : 0.8900(Epoch : 100)
 
-Model : 517-3M-1-1channel     test Accuracy : 0.9218(Epoch : 100)
-
-Model : 517-3M-1-3channel     test Accuracy : 0.9267(Epoch : 100)
+Model : 517-3M-1-1channel     test Accuracy : 0.9218(Epoch : 100) 
+Model : 517-3M-1-3channel     test Accuracy : 0.9267(Epoch : 100) *3
 
 # 3channel vs. 1channel --> 대부분 경우 1channel acc더 높음
-# 데이터 더 추가해보자
+# 1channel 채택
+
 # MaxPooling 안해주면 데이터 너무 커서 오래걸리기도 하고 성능도 그닥
+# Maxpooling 필수
+
+# 데이터 더 추가해보자
 
 
 === add new data ===
 
-Model : 517-3M-1channel     test Accuracy : 0.9590 # 60.pt
+Model : 517-3M-1channel     test Accuracy : 0.9590 (60.pt) *more complex
 
 Model : 517-3M-2-1channel     test Accuracy : 0.8949 (epoch : 60) 
 
 # Model Capacity 줄였더니 acc 낮아짐
+# 3M 채택
 
 
+=== Ablation Study====
 
-=== Model Test (Batch Normalzation, Dropout) ===
+=== Batch Normalzation === # epoch 20만 --> 초기 수렴 보기 위함 
 
 Model : 517-3M-1channel-BN_NO,Dropout_NO     test Accuracy : 0.1002 (epoch : 0)  # 수렴 속도 매우 느림
 
 Model : 517-3M-1channel-Dropout_NO     test Accuracy : 0.9193 (epoch : 20) # 수렴 속도 훨씬 빠름
+
+# BN 채택
+
+
+=== DropOut, weight init===
+
+Model : 518-3M-1channel-Weight_YES,Dropout_YES     test Accuracy : 0.9535 (pt = 30.pt)
+
+Model : 518-3M-1channel-Weight_No     test Accuracy : 0.9487 (pt = 80.pt)
+
+Model : 518-3M-1channel-Dropout_NO     test Accuracy : 0.9389 (epoch : 50)

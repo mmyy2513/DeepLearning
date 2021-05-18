@@ -37,6 +37,7 @@ RGB = args.RGB
 model = args.model
 memo = args.memo
 
+
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 date = str(time.localtime().tm_mon)+str(time.localtime().tm_mday)
 rgb = "3channel" if eval(RGB) == True else "1channel"
@@ -46,7 +47,7 @@ if memo != "":
 else:
 	description = date + "-" + model + "-" + rgb	
 
-# hyperparameters
+#hyperparameters
 batch_size = 2 ** 10
 lr = 1e-2
 epochs = int(args.epoch)
@@ -85,7 +86,7 @@ def save_checkpoint(desc, model, num):
 	print("=> Saving checkpoint : {}".format(filename))
 
 # fit
-def fit(epochs, model, criterion, optimzier, scheduler, train_loader, val_loader, description):
+def fit(epochs, model, criterion, optimzier, train_loader, val_loader, description):
 	train_cost = []
 	train_acc = []
 	val_cost = []
@@ -114,7 +115,7 @@ def fit(epochs, model, criterion, optimzier, scheduler, train_loader, val_loader
 				val_loss.append(loss); val_accuracy.append(acc)
 		
 		cost_v = sum(val_loss) / len(val_loss); val_cost.append(cost_v)
-		scheduler.step(cost_v)
+		#scheduler.step(cost_v)
 		accuracy_v = sum(val_accuracy) / len(val_accuracy); val_acc.append(accuracy_v)
 		
 		if epoch % 10 == 0:
@@ -153,20 +154,20 @@ train_loader = DataLoader(train_data, batch_size=batch_size, shuffle = True)
 val_loader = DataLoader(val_data, batch_size = batch_size)
 
 # define model
-model = Net(init_weights=False,model = model, RGB = eval(RGB)).to(device)
-#model.load_state_dict(torch.load("ckpt/517-3M-1channel-Dropout_NO/20.pt"))
+model = Net(model = model, RGB = eval(RGB)).to(device) # 
+#model.load_state_dict(torch.load("ckpt/517-3M-1channel-Dropout_NO/60.pt"))
 
 # optimizer
 optimizer = optim.Adam(model.parameters(), lr = lr)
 
 # lr scheduler
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor= 0.1, patience=5, verbose=True)
+#scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor= 0.1, patience=5, verbose=True)
 
 # loss function
 criterion = nn.CrossEntropyLoss()
 
 # train
-train_cost, train_acc, val_cost, val_acc = fit(epochs, model, criterion, optimizer, scheduler, train_loader, val_loader, description)
+train_cost, train_acc, val_cost, val_acc = fit(epochs, model, criterion, optimizer, train_loader, val_loader, description)
 
 # save graph
 plt.figure(figsize = (12,12))
@@ -202,7 +203,7 @@ testset_mnist, _ = torch.utils.data.random_split(testset_mnist, [200, len(testse
 
 testset = torch.utils.data.ConcatDataset([testset_mnist, testset_custom])
 
-test_loader = DataLoader(testset, batch_size=batch_size)
+test_loader = DataLoader(testset, batch_size=batch_size, shuffle = True)
 
 # test
 ckpt_path = f"ckpt/{description}/"
@@ -222,13 +223,15 @@ for pt in os.listdir(ckpt_path):
 			acc_list.append(acc)
 
 	test_accuracy = sum(acc_list) / len(acc_list)
-	result[pt] = test_accuracy
+	result[pt] = test_accuracy.item()
 
 result = sorted(result.items(), reverse = True, key = lambda item : item[1])
+for i in range(len(result)):
+	print(f"model.pt = {result[i][0]:10}\tAcc = {result[i][1]:.4f}")
 best = result[0]
 
 # save log
 with open("train_log.txt","a") as f:
 	f.write(f"\nModel : {description}     test Accuracy : {best[1]:.4f} (epoch : {best[0][:-3]})\n")
 
-print(f"\nModel : {description}     test Accuracy : {best[1]:.4f}\n")
+print(f"\nModel : {description}     test Accuracy : {best[1]:.4f}\n (pt = {best[0]})")

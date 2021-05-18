@@ -30,3 +30,17 @@ def get_mean_std(loader):
 
 mean, std = get_mean_std(train_loader)
 print(mean, std)
+
+
+# Sum of Each Channel
+    #SUM = TORCH.MEAN(DATA / DIM = [0,2,3])
+    
+# Squared Sum of Each Channel
+    #SQUARED_SUM = TORCH.MEAN(DATA ** 2 / DIM = [0,2,3])
+
+# Mean
+    # MEAN = SUM / N
+
+# Standard deviation = root( E[X**2] - E[X]**2 )
+    # STD = ((SQUARED_SUM / 2) - MEAN ** 2) ** 0.5
+
