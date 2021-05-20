@@ -11,6 +11,10 @@ model_types = {
 	'3M' : [64, 128, 'M', 256, 512, 'M', 512, 256, 256, 'M', 3],
 	'3M-1' : [64, 128, 'M', 256, 256, 512, 'M', 512, 256, 256, 'M', 3],
 	'3M-2' : [16, 32, 'M', 64, 64, 'M', 32, 16, 'M', 3],
+	'3M-3' : [16, 32, 'M', 64, 128,128, 64, 'M', 64, 64, 32, 16, 'M', 3],
+	'3M-4' : [16, 32, 'M', 64, 128,128, 64, 'M', 64, 64, 64, 32, 32, 16, 'M', 3],
+	'3M-5' : [16, 32, 'M', 64, 128,128, 'M', 128, 128, 64, 64, 32, 16, 'M', 3],
+
 	}
 
 class Net(nn.Module):
@@ -29,8 +33,9 @@ class Net(nn.Module):
 		self.fc_layers = nn.Sequential(	
 			nn.Linear(last * (28//(2**n_pool)) * (28//(2**n_pool)), 1000),
 			nn.ReLU(),
-			nn.Dropout(p=0.5),
-			nn.Linear(1000, num_classes)
+			nn.Dropout(0.5),
+			nn.Linear(1000, num_classes),
+			
 			)
 
 		if init_weights == True:

@@ -76,3 +76,9 @@ Model : 518-3M-1channel-Weight_YES,Dropout_YES     test Accuracy : 0.9535 (pt = 
 Model : 518-3M-1channel-Weight_No     test Accuracy : 0.9487 (pt = 80.pt)
 
 Model : 518-3M-1channel-Dropout_NO     test Accuracy : 0.9389 (epoch : 50)
+
+Model : 520-3M-3-1channel     test Accuracy : 0.9535 (epoch : 100)
+
+Model : 520-3M-4-1channel     test Accuracy : 0.9609 (epoch : 90)
+
+Model : 520-3M-5-1channel     test Accuracy : 0.9609 (epoch : 50)
